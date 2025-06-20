@@ -1,4 +1,5 @@
 import { createAuthClient } from "better-auth/react";
+import { polarClient } from "@polar-sh/better-auth";
 
 // Function to get the correct base URL based on current origin
 const getBaseURL = () => {
@@ -10,6 +11,7 @@ const getBaseURL = () => {
 
 export const authClient = createAuthClient({
   baseURL: getBaseURL(),
+  plugins: [polarClient()],
 });
 
 export const { 

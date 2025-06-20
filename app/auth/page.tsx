@@ -34,12 +34,14 @@ function AuthContent() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [name, setName] = useState("")
+  const [error, setError] = useState("")
   const router = useRouter()
   const searchParams = useSearchParams()
   const redirectTo = searchParams.get('redirectTo') || '/chat'
 
   const handleSocialAuth = async (provider: 'github' | 'google') => {
     setIsLoading(provider)
+    setError("")
     
     try {
       await signIn.social({
@@ -48,6 +50,7 @@ function AuthContent() {
       })
     } catch (error) {
       console.error(`${provider} auth failed:`, error)
+      setError(`${provider.charAt(0).toUpperCase() + provider.slice(1)} authentication failed. Please try again.`)
       setIsLoading(null)
     }
   }
@@ -55,6 +58,7 @@ function AuthContent() {
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading('email')
+    setError("")
     
     try {
       if (isSignUp) {
@@ -73,6 +77,7 @@ function AuthContent() {
       }
     } catch (error) {
       console.error(`Email auth failed:`, error)
+      setError(isSignUp ? "Account creation failed. Please try again." : "Sign in failed. Please check your credentials.")
       setIsLoading(null)
     }
   }
@@ -214,6 +219,7 @@ function AuthContent() {
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       className="pl-10 bg-white/5 border-white/20 text-white placeholder:text-gray-400"
+                      autoComplete="name"
                       required
                     />
                   </div>
@@ -231,6 +237,7 @@ function AuthContent() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="pl-10 bg-white/5 border-white/20 text-white placeholder:text-gray-400"
+                    autoComplete="email"
                     required
                   />
                 </div>
@@ -247,10 +254,17 @@ function AuthContent() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="pl-10 bg-white/5 border-white/20 text-white placeholder:text-gray-400"
+                    autoComplete={isSignUp ? "new-password" : "current-password"}
                     required
                   />
                 </div>
               </div>
+
+              {error && (
+                <div className="bg-red-500/20 border border-red-500/30 rounded-xl p-4 text-red-300 text-sm">
+                  {error}
+                </div>
+              )}
 
               <Button
                 type="submit"
