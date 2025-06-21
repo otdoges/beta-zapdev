@@ -1,22 +1,9 @@
-import { auth } from "@/lib/auth";
+import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
+import { cookies } from 'next/headers'
 import { getStripeClient } from "@/lib/stripe";
 import { type NextRequest, NextResponse } from "next/server";
-import { ConvexHttpClient } from "convex/browser";
-import { api } from "@/convex/_generated/api";
 
 export const dynamic = 'force-dynamic';
-
-// Defensive Convex client creation
-const createConvexClient = () => {
-  const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
-  if (!convexUrl) {
-    console.warn("NEXT_PUBLIC_CONVEX_URL not found, using placeholder");
-    return new ConvexHttpClient("https://placeholder.convex.cloud");
-  }
-  return new ConvexHttpClient(convexUrl);
-};
-
-const convex = createConvexClient();
 
 // Map frontend price IDs to product names for easier lookup
 const PRODUCT_MAP = {
@@ -27,11 +14,10 @@ const PRODUCT_MAP = {
 
 export async function GET(req: NextRequest) {
   try {
-    const session = await auth.api.getSession({
-      headers: req.headers
-    });
+    const supabase = createServerComponentClient({ cookies })
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
 
-    if (!session?.user) {
+    if (sessionError || !session?.user) {
       return new Response("Unauthorized", { status: 401 });
     }
 
@@ -63,10 +49,10 @@ export async function GET(req: NextRequest) {
       throw new Error(`No active price found for product: ${productName}`);
     }
     
-    // Create a customer directly in Stripe without requiring a user in Convex first
+    // Create a customer directly in Stripe
     const customer = await stripe.customers.create({
       email: user.email,
-      name: user.name,
+      name: user.user_metadata?.name || user.email,
       metadata: {
         userId: user.id,
       },

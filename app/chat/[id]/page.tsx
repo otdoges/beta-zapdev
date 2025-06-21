@@ -23,7 +23,7 @@ import {
   Layers
 } from "lucide-react"
 import { getTokenUsageStats } from "@/lib/openrouter"
-import { useAuthUser } from "@/lib/actions"
+import { useSupabase } from "@/components/auth-provider"
 
 // Memoize static components for better performance
 const BackButton = ({ onClick }: { onClick: () => void }) => (
@@ -66,7 +66,9 @@ export default function ChatPage() {
   const [showTemplates, setShowTemplates] = useState(false)
   const [currentView, setCurrentView] = useState<'code' | 'preview'>('preview')
   const [chatHistory, setChatHistory] = useState<any[]>([])
-  const { user, isAuthenticated, isLoading } = useAuthUser()
+  const { user } = useSupabase()
+  const isAuthenticated = !!user
+  const isLoading = false
 
   // Memoized handlers
   const handleBack = useMemo(() => () => router.push('/chat'), [router])

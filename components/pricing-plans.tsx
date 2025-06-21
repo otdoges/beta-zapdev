@@ -4,8 +4,7 @@ import { useState } from "react"
 import { motion } from "framer-motion"
 import { Check, Sparkles, Zap, Crown, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { authClient } from "@/lib/auth-client"
-import { useSession } from "@/lib/auth-client"
+import { useSupabase } from "@/components/auth-provider"
 
 const pricingPlans = [
   {
@@ -94,7 +93,7 @@ const pricingPlans = [
 
 export function PricingPlans() {
   const [isLoading, setIsLoading] = useState<string | null>(null)
-  const { data: session } = useSession()
+  const { user } = useSupabase()
 
   const handleSubscribe = async (plan: typeof pricingPlans[0]) => {
     if (!plan.slug) {
@@ -105,7 +104,7 @@ export function PricingPlans() {
       return
     }
 
-    if (!session?.user) {
+    if (!user) {
       // Redirect to auth if not logged in
       window.location.href = "/auth"
       return
@@ -114,10 +113,9 @@ export function PricingPlans() {
     setIsLoading(plan.slug)
 
     try {
-      // Use the Polar checkout through BetterAuth
-      await authClient.checkout({
-        slug: plan.slug,
-      })
+      // TODO: Implement Stripe checkout
+      console.log("Checkout for plan:", plan.slug)
+      setIsLoading(null)
     } catch (error) {
       console.error("Checkout failed:", error)
       setIsLoading(null)
