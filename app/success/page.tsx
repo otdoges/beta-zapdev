@@ -1,13 +1,12 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { motion } from "framer-motion"
 import { CheckCircle, ArrowRight, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { authClient } from "@/lib/auth-client"
 
-export default function SuccessPage() {
+function SuccessContent() {
   const [isLoading, setIsLoading] = useState(true)
   const [checkoutId, setCheckoutId] = useState<string | null>(null)
   const router = useRouter()
@@ -149,7 +148,7 @@ export default function SuccessPage() {
         </motion.div>
       </div>
 
-      <style jsx>{`
+      <style>{`
         @keyframes blob {
           0% {
             transform: translate(0px, 0px) scale(1);
@@ -175,5 +174,20 @@ export default function SuccessPage() {
         }
       `}</style>
     </div>
+  )
+}
+
+export default function SuccessPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900 flex items-center justify-center">
+        <div className="text-white">
+          <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin mx-auto" />
+          <p className="mt-4 text-center">Loading...</p>
+        </div>
+      </div>
+    }>
+      <SuccessContent />
+    </Suspense>
   )
 }

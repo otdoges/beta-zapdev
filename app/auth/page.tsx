@@ -2,7 +2,7 @@
 
 import { useState, Suspense } from "react"
 import { motion } from "framer-motion"
-import { Github, Chrome, Sparkles, Zap, ArrowRight, Code, Palette, Rocket, Mail, Lock, User } from "lucide-react"
+import { Github, Sparkles, Zap, ArrowRight, Code, Palette, Rocket, Mail, Lock, User } from "lucide-react"
 import { signIn, signUp } from "@/lib/auth-client"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -39,18 +39,17 @@ function AuthContent() {
   const searchParams = useSearchParams()
   const redirectTo = searchParams.get('redirectTo') || '/chat'
 
-  const handleSocialAuth = async (provider: 'github' | 'google') => {
-    setIsLoading(provider)
+  const handleGitHubAuth = async () => {
+    setIsLoading('github')
     setError("")
     
     try {
-      await signIn.social({
-        provider,
-        callbackURL: redirectTo,
-      })
+      const { error } = await signIn.social('github')
+      if (error) throw error
+      // The user will be redirected by Supabase, so no need to call router.push()
     } catch (error) {
-      console.error(`${provider} auth failed:`, error)
-      setError(`${provider.charAt(0).toUpperCase() + provider.slice(1)} authentication failed. Please try again.`)
+      console.error('GitHub auth failed:', error)
+      setError('GitHub authentication failed. Please try again.')
       setIsLoading(null)
     }
   }
@@ -61,22 +60,16 @@ function AuthContent() {
     setError("")
     
     try {
+      let error
       if (isSignUp) {
-        await signUp.email({
-          email,
-          password,
-          name,
-          callbackURL: redirectTo,
-        })
+        ({ error } = await signUp.email(email, password))
       } else {
-        await signIn.email({
-          email,
-          password,
-          callbackURL: redirectTo,
-        })
+        ({ error } = await signIn.email(email, password))
       }
+      if (error) throw error
+      router.push(redirectTo)
     } catch (error) {
-      console.error(`Email auth failed:`, error)
+      console.error('Email auth failed:', error)
       setError(isSignUp ? "Account creation failed. Please try again." : "Sign in failed. Please check your credentials.")
       setIsLoading(null)
     }
@@ -166,12 +159,12 @@ function AuthContent() {
               <p className="text-gray-300">Sign in to start building amazing things</p>
             </div>
 
-            {/* Social Auth Icons */}
+            {/* GitHub Auth Button */}
             <div className="flex justify-center gap-4 mb-6">
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => handleSocialAuth('github')}
+                onClick={handleGitHubAuth}
                 disabled={isLoading !== null}
                 className="p-4 bg-gray-900 hover:bg-gray-800 rounded-2xl transition-all duration-200 border border-gray-700 hover:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
                 title="Continue with GitHub"
@@ -180,21 +173,6 @@ function AuthContent() {
                   <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 ) : (
                   <Github className="w-6 h-6 text-white" />
-                )}
-              </motion.button>
-
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => handleSocialAuth('google')}
-                disabled={isLoading !== null}
-                className="p-4 bg-white hover:bg-gray-50 rounded-2xl transition-all duration-200 border border-gray-200 hover:border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                title="Continue with Google"
-              >
-                {isLoading === 'google' ? (
-                  <div className="w-6 h-6 border-2 border-gray-300 border-t-gray-900 rounded-full animate-spin" />
-                ) : (
-                  <Chrome className="w-6 h-6 text-gray-900" />
                 )}
               </motion.button>
             </div>
@@ -257,6 +235,13 @@ function AuthContent() {
                     autoComplete={isSignUp ? "new-password" : "current-password"}
                     required
                   />
+                </div>
+              </div>
+
+              {/* CAPTCHA Placeholder */}
+              <div className="flex justify-center my-4">
+                <div className="w-full h-20 bg-white/5 rounded-xl flex items-center justify-center text-gray-400 text-sm">
+                  CAPTCHA Placeholder
                 </div>
               </div>
 

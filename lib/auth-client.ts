@@ -1,23 +1,44 @@
-import { createAuthClient } from "better-auth/react";
-import { polarClient } from "@polar-sh/better-auth";
+import { createClient } from '@/utils/supabase/client'
 
-// Function to get the correct base URL based on current origin
-const getBaseURL = () => {
-  if (typeof window !== 'undefined') {
-    return window.location.origin;
-  }
-  return process.env.NEXT_PUBLIC_BETTER_AUTH_URL || "http://localhost:3000";
-};
+const supabase = createClient()
 
-export const authClient = createAuthClient({
-  baseURL: getBaseURL(),
-  plugins: [polarClient()],
-});
+export const signIn = {
+  social: async (provider: 'github') => {
+    return supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: `${location.origin}/auth/callback`,
+      },
+    })
+  },
+  email: async (email: string, password: string) => {
+    return supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
+  },
+}
 
-export const { 
-  signIn, 
-  signUp, 
-  signOut, 
-  useSession, 
-  getSession 
-} = authClient; 
+export const signUp = {
+  email: async (email: string, password: string) => {
+    return supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: `${location.origin}/auth/callback`,
+      },
+    })
+  },
+}
+
+export const signOut = async () => {
+  return supabase.auth.signOut()
+}
+
+export const getSession = async () => {
+  return supabase.auth.getSession()
+}
+
+export const getUser = async () => {
+  return supabase.auth.getUser()
+} 

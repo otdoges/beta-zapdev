@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import Hero from "@/components/hero";
 import FinalCTA from "@/components/final-cta"; 
 import Pricing from "@/components/pricing";
-import { useIsAuthenticated } from "@/lib/actions";
+import { useSupabase } from "@/components/auth-provider";
 import { signOut } from "@/lib/auth-client";
 
 const FeaturesShowcase = dynamic(() => import('@/components/features-showcase'), { loading: () => <div style={{ minHeight: '50vh' }} /> });
@@ -20,7 +20,8 @@ export default function Home() {
   const router = useRouter();
   const [showFloatingCTA, setShowFloatingCTA] = useState(false);
   const { scrollY } = useScroll();
-  const { isAuthenticated, isLoading } = useIsAuthenticated();
+  const { user, isLoading } = useSupabase();
+  const isAuthenticated = !!user;
   
   const goToPricingPage = () => {
     router.push('/pricing');
@@ -35,13 +36,8 @@ export default function Home() {
   };
 
   const handleSignOut = async () => {
-    await signOut({
-      fetchOptions: {
-        onSuccess: () => {
-          router.push('/');
-        },
-      },
-    });
+    await signOut();
+    router.push('/');
   };
 
   useEffect(() => {
